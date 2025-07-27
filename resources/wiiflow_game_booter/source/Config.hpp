@@ -34,6 +34,7 @@ struct the_CFG {
 	u32 gameconfsize;
 	void *codelist;
 	u8 *codelistend;
+	bool JustDanceGame;
 	bool patchregion;
 	/* needed for channels */
 	u64 title;

@@ -29,7 +29,7 @@ s32 Disc_Open(u8 type)
 	return WDVD_ReadDiskId((u8*)Disc_ID);
 }
 
-void Disc_SetLowMem(void)
+void Disc_SetLowMem(bool JustDanceGame)
 {
 	/* Setup low memory */
 	*Sys_Magic			= 0x0D15EA5E; // Standard Boot Code
@@ -38,13 +38,14 @@ void Disc_SetLowMem(void)
 	*BI2				= 0x817E5480; // BI2
 	*Bus_Speed			= 0x0E7BE2C0; // Console Bus Speed
 	*CPU_Speed			= 0x2B73A840; // Console CPU Speed
-	*Assembler			= 0x38A00040; // Assembler
+	//*Assembler			= 0x38A00040; // Assembler
 	*OS_Thread			= 0x80431A80; // Thread Init
 	*Dev_Debugger		= 0x81800000; // Dev Debugger Monitor Address
 	*Simulated_Mem		= 0x01800000; // Simulated Memory Size
 	*(vu32 *) 0xCD00643C = 0x00000000;	// 32Mhz on Bus
 
 	//if(CurrentIOS.Type != IOS_TYPE_HERMES && CurrentIOS.Revision >= 18)
+	if(!JustDanceGame)
 		*GameID_Address		= 0x80000000; // Fix for Sam & Max (WiiPower) and Back to the Future.
 
 	/* Copy Disc ID */

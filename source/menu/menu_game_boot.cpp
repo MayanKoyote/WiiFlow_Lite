@@ -1095,6 +1095,9 @@ void CMenu::_launchWii(dir_discHdr *hdr, bool dvd, bool disc_cfg)
 	m_gcfg1.setUInt("LASTPLAYED", id, time(NULL));
 	
 	bool use_led = m_gcfg2.getBool(id, "led", false);
+	bool JustDanceGame = true;
+	if(!wcsstr(hdr->title, L"Just Dance"))
+		JustDanceGame = false;
 	
 	int language = min(m_gcfg2.getUInt(id, "language", 0), ARRAY_SIZE(CMenu::_languages) - 1u);
 	language = (language == 0) ? min(m_cfg.getUInt("GENERAL", "game_language", 0), ARRAY_SIZE(CMenu::_languages) - 1u) : language;
@@ -1333,7 +1336,7 @@ void CMenu::_launchWii(dir_discHdr *hdr, bool dvd, bool disc_cfg)
 		mask32(0xd8006a8, 0, 2);
 	}
 	
-	ExternalBooter_WiiGameSetup(wbfs_partition, dvd, patchregion, id.c_str());
+	ExternalBooter_WiiGameSetup(wbfs_partition, dvd, patchregion, JustDanceGame, id.c_str());
 	WiiFlow_ExternalBooter(videoMode, vipatch, countryPatch, patchVidMode, aspectRatio, private_server, server_addr.c_str(), 
 							videoWidth, fix480p, deflicker, returnTo, TYPE_WII_GAME, use_led);
 

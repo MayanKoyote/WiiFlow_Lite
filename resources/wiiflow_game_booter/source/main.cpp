@@ -103,7 +103,7 @@ int main()
 		u32 offset = 0;
 		Disc_FindPartition(&offset);
 		WDVD_OpenPartition(offset, &GameIOS);
-		Disc_SetLowMem();
+		Disc_SetLowMem(normalCFG.JustDanceGame);
 		if(normalCFG.vidMode == 5)
 			normalCFG.patchVidMode = 1; //progressive mode requires this
 		vmode = Disc_SelectVMode(normalCFG.vidMode, &vmode_reg);// requires Disc_ID[3]
