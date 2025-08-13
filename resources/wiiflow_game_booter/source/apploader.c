@@ -36,6 +36,7 @@ static void Anti_002_fix(void *Address, int Size);
 static bool Remove_001_Protection(void *Address, int Size);
 static void PrinceOfPersiaPatch();
 static void NewSuperMarioBrosPatch();
+static void patch_sdcard();
 static void Patch_23400_and_MKWii_vulnerability();
 bool hookpatched = false;
 
@@ -51,7 +52,7 @@ static struct
 } apploader_hdr ATTRIBUTE_ALIGN(32);// 16+4+4+4+4=32 bytes
 
 u32 Apploader_Run(u8 vidMode, GXRModeObj *vmode, bool vipatch, bool countryString, u8 patchVidModes, int aspectRatio, u32 returnTo, 
-					bool patchregion , u8 private_server, const char *server_addr, u8 videoWidth, bool patchFix480p, u8 deflicker, u8 bootType)
+					bool patchregion , u8 private_server, const char *server_addr, u8 videoWidth, bool patchFix480p, u8 deflicker, bool SD_card, u8 bootType)
 {
 	//! Disable private server for games that still have official servers.
 	if(memcmp(GameID, "SC7", 3) == 0 || memcmp(GameID, "RJA", 3) == 0 ||
@@ -120,6 +121,8 @@ u32 Apploader_Run(u8 vidMode, GXRModeObj *vmode, bool vipatch, bool countryStrin
 	}
 	free_wip();
 
+	if(SD_card)
+		patch_sdcard();// patch to play exite truck or kirby return to dreamland from SD card
 	patch_kirby((u8 *)0x80000000);// can't be done during maindolpatches.
 	
 	if(videoWidth == WIDTH_FRAMEBUFFER)
@@ -308,6 +311,41 @@ static void NewSuperMarioBrosPatch()
 		CodeList[2].dstaddress = 0x71000000;
 		set_wip_list(CodeList, 3);
 	}
+}
+
+static void patch_sdcard()
+{
+    // Blackb0x/Wiidev might patch this at the cIOS level at some point, but this works for now
+
+    // Excite Truck
+    if (memcmp(GameID, "REXE01", 6) == 0)
+        *(u32 *)0x800b9e48 = 0x4800014c;
+    else if (memcmp(GameID, "REXP01", 6) == 0)
+        *(u32 *)0x800ba358 = 0x4800014c;
+    else if (memcmp(GameID, "REXJ01", 6) == 0)
+        *(u32 *)0x800ba404 = 0x4800014c;
+
+    // Kirby's Return to Dream Land
+    else if (memcmp(GameID, "SUKE01", 6) == 0)
+    {
+        *(u32 *)0x8022da10 = 0x60000000;
+        *(u32 *)0x8022da48 = 0x60000000;
+    }
+    else if (memcmp(GameID, "SUKP01", 6) == 0)
+    {
+        *(u32 *)0x8022e800 = 0x60000000;
+        *(u32 *)0x8022e838 = 0x60000000;
+    }
+    else if (memcmp(GameID, "SUKJ01", 6) == 0)
+    {
+        *(u32 *)0x8022c66c = 0x60000000;
+        *(u32 *)0x8022c6a4 = 0x60000000;
+    }
+    else if (memcmp(GameID, "SUKK01", 6) == 0)
+    {
+        *(u32 *)0x8022dfc4 = 0x60000000;
+        *(u32 *)0x8022dffc = 0x60000000;
+    }
 }
 
 static bool Remove_001_Protection(void *Address, int Size)
