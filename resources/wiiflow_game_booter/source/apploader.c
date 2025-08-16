@@ -37,6 +37,7 @@ static bool Remove_001_Protection(void *Address, int Size);
 static void PrinceOfPersiaPatch();
 static void NewSuperMarioBrosPatch();
 static void patch_sdcard();
+static void patch_re4();
 static void Patch_MKWii_vulnerability();
 bool hookpatched = false;
 
@@ -117,7 +118,10 @@ u32 Apploader_Run(u8 vidMode, GXRModeObj *vmode, bool vipatch, bool countryStrin
 
 	if(SD_card)
 		patch_sdcard();// patch to play exite truck or kirby return to dreamland from SD card
+		
 	patch_kirby((u8 *)0x80000000);// can't be done during maindolpatches.
+	
+	patch_re4();
 	
 	if(videoWidth == WIDTH_FRAMEBUFFER)
 		patch_width((void*)0x80000000, 0x900000);
@@ -340,6 +344,16 @@ static void patch_sdcard()
         *(u32 *)0x8022dfc4 = 0x60000000;
         *(u32 *)0x8022dffc = 0x60000000;
     }
+}
+
+static void patch_re4()
+{
+    if (memcmp(GameID, "RB4E08", 6) == 0)
+        *(u32 *)0x8016B260 = 0x38600001;
+    else if (memcmp(GameID, "RB4P08", 6) == 0)
+        *(u32 *)0x8016B094 = 0x38600001;
+    else if (memcmp(GameID, "RB4X08", 6) == 0)
+        *(u32 *)0x8016B0C8 = 0x38600001;
 }
 
 static bool Remove_001_Protection(void *Address, int Size)
