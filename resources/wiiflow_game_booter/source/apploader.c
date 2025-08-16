@@ -37,7 +37,7 @@ static bool Remove_001_Protection(void *Address, int Size);
 static void PrinceOfPersiaPatch();
 static void NewSuperMarioBrosPatch();
 static void patch_sdcard();
-static void Patch_23400_and_MKWii_vulnerability();
+static void Patch_MKWii_vulnerability();
 bool hookpatched = false;
 
 // wiiflow uses a struct to hold the appldr hdr and usblgx uses a u32 buffer[32] array to hold it.
@@ -54,13 +54,6 @@ static struct
 u32 Apploader_Run(u8 vidMode, GXRModeObj *vmode, bool vipatch, bool countryString, u8 patchVidModes, int aspectRatio, u32 returnTo, 
 					bool patchregion , u8 private_server, const char *server_addr, u8 videoWidth, bool patchFix480p, u8 deflicker, bool SD_card, u8 bootType)
 {
-	//! Disable private server for games that still have official servers.
-	if(memcmp(GameID, "SC7", 3) == 0 || memcmp(GameID, "RJA", 3) == 0 ||
-		memcmp(GameID, "SM8", 3) == 0 || memcmp(GameID, "SZB", 3) == 0 || memcmp(GameID, "R9J", 3) == 0)
-	{
-		private_server = PRIVSERV_OFF; // Private server patching causes error 20100
-	}
-	
 	// if either of these 2 games - adds internal wip codes before do_wip_code() is called in maindolpatches()
 	// note: using external .wip codes for these games will prevent their internal codes.
 	// note: usblgx does it different so that these patches still work with .wip code files.
@@ -142,7 +135,7 @@ u32 Apploader_Run(u8 vidMode, GXRModeObj *vmode, bool vipatch, bool countryStrin
 	//! Wiimmfi will handle that on its own through the update payload.
 	//! This will also patch error 23400 for a couple games that still have official servers.
 	if(private_server != PRIVSERV_WIIMMFI)
-		Patch_23400_and_MKWii_vulnerability();
+		Patch_MKWii_vulnerability();
 	
 	else //PRIVSERV_WIIMMFI
 	{
@@ -367,49 +360,16 @@ static bool Remove_001_Protection(void *Address, int Size)
 	return false;
 }
 
-static void Patch_23400_and_MKWii_vulnerability()
+static void Patch_MKWii_vulnerability()
 {
 	// Thanks to Seeky for the MKWii gecko codes
-	// Thanks to InvoxiPlayGames for the gecko codes for the 23400 fix.
 	// Reimplemented by Leseratte without the need for a code handler.
 
 	u32 * patch_addr = 0;
 	char * patched = 0; 
 
-	// Patch error 23400 for CoD (Black Ops, Reflex, MW3) and Rock Band 3 / The Beatles
-
-	if (memcmp(GameID, "SC7", 3) == 0) 
-	{
-		gprintf("Patching error 23400 for game %s\n", GameID);
-		*(u32 *)0x8023c954 = 0x41414141;
-	}
-
-	else if (memcmp(GameID, "RJA", 3) == 0) 
-	{
-		gprintf("Patching error 23400 for game %s\n", GameID);
-		*(u32 *)0x801b838c = 0x41414141;
-	}
-
-	else if (memcmp(GameID, "SM8", 3) == 0) 
-	{
-		gprintf("Patching error 23400 for game %s\n", GameID);
-		*(u32 *)0x80238c74 = 0x41414141;
-	}
-
-	else if (memcmp(GameID, "SZB", 3) == 0) 
-	{
-		gprintf("Patching error 23400 for game %s\n", GameID);
-		*(u32 *)0x808e3b20 = 0x41414141;
-	}
-
-	else if (memcmp(GameID, "R9J", 3) == 0) 
-	{
-		gprintf("Patching error 23400 for game %s\n", GameID);
-		*(u32 *)0x808d6934 = 0x41414141;
-	}
-
 	// Patch RCE vulnerability in MKWii.
-	else if (memcmp(GameID, "RMC", 3) == 0) 
+	if (memcmp(GameID, "RMC", 3) == 0) 
 	{
 		switch (GameID[3]) {
 
