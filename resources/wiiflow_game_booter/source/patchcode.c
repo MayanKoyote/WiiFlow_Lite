@@ -711,6 +711,35 @@ void domainpatcher(void *addr, u32 len, const char* domain)
 	while (++cur < end);
 }
 
+u8 *find_safe_space(u8 *addr, u32 len)
+{
+    u8 SearchPatternA[] = {0x80, 0x1E, 0x00, 0x00, 0x3C, 0x60, 0x80, 0x00, 0x83}; // Most games
+    u8 SearchPatternB[] = {0x80, 0x1F, 0x00, 0x00, 0x3C, 0x60, 0x80, 0x00, 0x83}; // Mortal Kombat
+    u8 *addr_start = addr;
+    u8 *addr_end = addr + len - sizeof(SearchPatternA);
+    while (addr_start <= addr_end)
+    {
+        if (memcmp(addr_start, SearchPatternA, sizeof(SearchPatternA)) == 0)
+        {
+            if (*(u32*)(addr_start + 36) == 0x38000001)
+            {
+                gprintf("Found safe space (A)\n");
+                return addr_start + 36;
+            }
+        }
+        else if (memcmp(addr_start, SearchPatternB, sizeof(SearchPatternB)) == 0)
+        {
+            if (*(u32*)(addr_start + 36) == 0x38000001)
+            {
+                gprintf("Found safe space (B)\n");
+                return addr_start + 36;
+            }
+        }
+        addr_start += 4;
+    }
+    return NULL;
+}
+
 /** 480p Pixel Fix Patch by leseratte
     fix for a Nintendo Revolution SDK bug found by Extrems affecting early Wii console when using 480p video mode.
 	https://shmups.system11.org/viewtopic.php?p=1361158#p1361158
@@ -796,19 +825,18 @@ void PatchFix480p()
         return;
     }
    
-    // If we are here, we found the offset. Lets grab some space
-    // from the heap for our patch
-    u32 old_heap_ptr = *(u32*)0x80003110;
-    *((u32*)0x80003110) = (old_heap_ptr - 0x20);
-    u32 heap_space = old_heap_ptr-0x20;
+    u8 *patch = find_safe_space(addr, len);
+    if (patch)
+        patch += 32; // Puts us at "This TV format"
+    else
+        return;
 
-    gprintf("Found offset for 480p patch - create branch from 0x%x to heap (0x%x)\n", offset, heap_space); 
-                    //hexdump (offset, 30); 
-
-    memcpy((void*)heap_space, patch_ptr, 8);
+    memcpy((void*)patch, patch_ptr, 8);
    
-    *((u32*)offset) = 0x48000000 + (((u32)(heap_space) - ((u32)(offset))) & 0x3ffffff);
-    *((u32*)((u32)heap_space + 8)) = 0x48000000 + (((u32)((u32)offset + 4) - ((u32)(heap_space + 8))) & 0x3ffffff);
+    *(u32 *)offset = 0x48000000 + (((u32)patch - (u32)offset) & 0x3ffffff);
+    *(u32 *)(patch + 8) = 0x48000000 + ((((u32)offset + 4) - ((u32)patch + 8)) & 0x3ffffff);
+    gprintf("Applied 480p patch. Branched from 0x%x to 0x%x\n", offset, patch);
+    //hexdump((void *)patch - 32, 92);
     return;
 }
 
@@ -1423,6 +1451,13 @@ void patch_width(void *addr, u32 len)
         0x40, 0x82, 0x00, 0x08, 0x54, 0xA5, 0x0C, 0x3C};
 	u8 *addr_start = (u8 *)addr;
     u8 *addr_end = addr_start + len - sizeof(SearchPattern);
+    u8 *patch = find_safe_space(addr, len);
+
+    if (patch)
+        patch += 12; // Puts us at the first crclr
+    else
+        return;
+		
     while (addr_start <= addr_end)
     {
         if (memcmp(addr_start, SearchPattern, sizeof(SearchPattern)) == 0)
@@ -1440,20 +1475,16 @@ void patch_width(void *addr, u32 len)
                     // Center the image
                     void *offset = addr_start - 0x70;
 
-                    u32 old_heap_ptr = *(u32 *)0x80003110;
-                    *(u32 *)0x80003110 = old_heap_ptr - 0x40;
-                    u32 heap_space = old_heap_ptr - 0x40;
-
                     u32 org_address = (addr_start[-0x70] << 24) | (addr_start[-0x6F] << 16);
-                    *(u32 *)(heap_space + 0x00) = org_address | 4;
-                    *(u32 *)(heap_space + 0x04) = 0x200002D0 | (reg_b << 21) | (reg_a << 16);
-                    *(u32 *)(heap_space + 0x08) = 0x38000002 | (reg_a << 21);
-                    *(u32 *)(heap_space + 0x0C) = 0x7C000396 | (reg_a << 21) | (reg_b << 16) | (reg_a << 11);
+                    *(u32 *)(patch + 0x00) = org_address | 4;
+                    *(u32 *)(patch + 0x04) = 0x200002D0 | (reg_b << 21) | (reg_a << 16);
+                    *(u32 *)(patch + 0x08) = 0x38000002 | (reg_a << 21);
+                    *(u32 *)(patch + 0x0C) = 0x7C000396 | (reg_a << 21) | (reg_b << 16) | (reg_a << 11);
 
-                    *(u32 *)offset = 0x48000000 + ((heap_space - (u32)offset) & 0x3ffffff);
-                    *(u32 *)(heap_space + 0x10) = 0x48000000 + ((((u32)offset + 0x04) - (heap_space + 0x10)) & 0x3ffffff);
+                    *(u32 *)offset = 0x48000000 + (((u32)patch - (u32)offset) & 0x3ffffff);
+                    *(u32 *)(patch + 0x10) = 0x48000000 + ((((u32)offset + 0x04) - ((u32)patch + 0x10)) & 0x3ffffff);
 
-                    gprintf("Patched resolution. Branched from 0x%x to 0x%x\n", offset, heap_space);
+                    gprintf("Patched resolution. Branched from 0x%x to 0x%x\n", offset, patch);
                     return;
                 }
             }

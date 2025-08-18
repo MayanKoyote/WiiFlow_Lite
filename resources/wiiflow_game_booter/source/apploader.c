@@ -57,7 +57,6 @@ u32 Apploader_Run(u8 vidMode, GXRModeObj *vmode, bool vipatch, bool countryStrin
 {
 	// if either of these 2 games - adds internal wip codes before do_wip_code() is called in maindolpatches()
 	// note: using external .wip codes for these games will prevent their internal codes.
-	// note: usblgx does it different so that these patches still work with .wip code files.
 	PrinceOfPersiaPatch();
 	NewSuperMarioBrosPatch();
 
