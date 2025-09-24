@@ -173,45 +173,70 @@ bool SFont::fromBuffer(const u8 *buffer, const u32 bufferSize, u32 size, u32 lsp
 {
 	if(buffer == NULL)
 		return false;
+	
+	/* these values are used in CText below */
 	fSize = std::min(std::max(6u, size), 1000u);
 	lineSpacing = std::min(std::max(6u, lspacing), 1000u);
+	/* weight is not used in CText but is sent to FreeTypeGX during loadFont */
 	weight = std::min(w, 32u);
-	index = idx;// currently not used
+	/* index is always set to zero or lastface in FreeTypeGX */
+	/* value here is ignored */
+	index = idx;// BUTTONFONT, LABELFONT, TITLEFONT, TXTFONT == 1
 
+	/* Open memory space for Wii's internal font */
 	if(data != NULL)
 		free(data);
 	data = (u8*)MEM2_alloc(bufferSize);
-	if(data == NULL) return false;
+	if(data == NULL) 
+		return false;
 	dataSize = bufferSize;
 
+	/* copy Wii's internal font to new mem buffer (data) */
 	memcpy(data, buffer, bufferSize);
 	DCFlushRange(data, dataSize);
 
+	/* set name value to font's name */
+	/* used in menu.cpp to compare names of fonts already buffered */
+	/* fontname = title_font, button_font, label_font, text_font ... see fonts.h */
+	/* fontname could also be a filename if specified in a theme ini */
 	strncpy(name, fontname, 127);
+	
+	/* contruct new FreeTypeGX and load it. */
 	font = new FreeTypeGX();
 	font->loadFont(data, dataSize, weight, true);
+	
 	return true;
 }
 
 bool SFont::fromFile(const char *path, u32 size, u32 lspacing, u32 w, u32 idx, const char *fontname)
 {
+	/* these values are used in CText below */
 	fSize = std::min(std::max(6u, size), 1000u);
-	weight = std::min(w, 32u);
-	index = idx;// currently not used
-
 	lineSpacing = std::min(std::max(6u, lspacing), 1000u);
+	/* weight is not used in CText but is sent to FreeTypeGX during loadFont */
+	weight = std::min(w, 32u);
+	/* index is always set to zero or lastface in FreeTypeGX */
+	/* value here is ignored */
+	index = idx;// BUTTONFONT, LABELFONT, TITLEFONT, TXTFONT == 1
 
+	/* Open memory space for font and copy it to new mem buffer (data) */
 	if(data != NULL)
 		free(data);
 	data = fsop_ReadFile(path, &dataSize);
 	if(data == NULL)
 		return false;
-
 	DCFlushRange(data, dataSize);
 
+	/* set name value to font's name */
+	/* used in menu.cpp to compare names of fonts already buffered */
+	/* fontname = title_font, button_font, label_font, text_font ... see fonts.h */
+	/* fontname could also be a filename if specified in a theme ini */
 	strncpy(name, fontname, 127);
+	
+	/* contruct new FreeTypeGX and load it. */
 	font = new FreeTypeGX();
 	font->loadFont(data, dataSize, weight, false);
+	
 	return true;
 }
 

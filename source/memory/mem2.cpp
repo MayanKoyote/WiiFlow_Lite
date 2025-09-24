@@ -15,17 +15,20 @@ static const u32 MEM2_PRIORITY_SIZE = 0x1000;// 4k or 4096
 // calls to malloc, memalign, calloc, free are handled below by the wrappers which decide whether to use mem1 or mem2.
 u32 MALLOC_MEM2 = 0;
 
-u8 *MEM1_lo_start = (u8*)0x80004000;
-u8 *MEM1_lo_end = (u8*)0x8061ff00;
-u8 *MEM1_lo_list = (u8*)0x90080800;
+// size = 6,405,888
+u8 *MEM1_lo_start = (u8*)0x80004000;// 2,147,500,032
+u8 *MEM1_lo_end = (u8*)0x8061ff00;// 2,153,905,920
+u8 *MEM1_lo_list = (u8*)0x90080800;// list start = 2,416,445,440
 
-u8 *MEM2_lo_start = (u8*)0x90200000;
-u8 *MEM2_lo_end = (u8*)0x905fff00;
-u8 *MEM2_lo_list = (u8*)0x900a0800;
+// size = 4,194,048
+u8 *MEM2_lo_start = (u8*)0x90200000;//2,418,016,256
+u8 *MEM2_lo_end = (u8*)0x905fff00; //2,422,210,304
+u8 *MEM2_lo_list = (u8*)0x900a0800;// list start = 2,416,576,512
 
-u8 *MEM2_start = (u8*)0x90600000;
-u8 *MEM2_end = (u8*)0x932fff00;
-u8 *MEM2_list = (u8*)0x90000800;
+// size = 47,185,664
+u8 *MEM2_start = (u8*)0x90600000;// 2,422,210,560
+u8 *MEM2_end = (u8*)0x932fff00;// 2,469,396,224
+u8 *MEM2_list = (u8*)0x90000800;// list start = 2,415,921,152
 
 static MemManager g_mem1lo;
 static MemManager g_mem2lo;

@@ -106,6 +106,7 @@ void CMenu::_launch(const dir_discHdr *hdr)
 {
 	dir_discHdr launchHdr;
 	memcpy(&launchHdr, hdr, sizeof(dir_discHdr));
+	m_gameList.clear();// we no longer need entire gamelist now that we got the header that we need.
 	
 	MusicPlayer.Stop();
 	m_cfg.setInt("GENERAL", "cat_startpage", m_catStartPage);
@@ -142,7 +143,7 @@ void CMenu::_launch(const dir_discHdr *hdr)
 		CurrentBanner.ClearBanner();
 		if(launchHdr.type == TYPE_CHANNEL || launchHdr.type == TYPE_EMUCHANNEL)
 		{
-			u64 chantitle = CoverFlow.getChanTitle();
+			u64 chantitle = TITLE_ID(launchHdr.settings[0],launchHdr.settings[1]);
 			ChannelHandle.GetBanner(chantitle);
 		}
 		else if(launchHdr.type == TYPE_WII_GAME)

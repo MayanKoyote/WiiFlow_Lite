@@ -756,6 +756,7 @@ int CMenu::main(void)
 						sort = SORT_BTN_NUMBERS;
 					else
 						sort = SORT_ALPHA;
+					m_cfg.setInt(SOURCEFLOW_DOMAIN, "sort", sort);
 				}
 				else // change all other coverflow sort mode
 				{

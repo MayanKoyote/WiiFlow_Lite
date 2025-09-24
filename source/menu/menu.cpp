@@ -1331,27 +1331,29 @@ typedef struct
 	u32 res;
 } FontHolder;
 
+/* this is used when getting default font settings from theme ini under [GENERAL] domain for Labels, text, buttons, and titles */
 SFont CMenu::_dfltFont(u32 fontSize, u32 lineSpacing, u32 weight, u32 index, const char *genKey)
 {
 	/* get font info from theme.ini or use the default values */
-	string filename;
+	/* if no theme loaded m_theme.get will return 0 or genKey */
 	FontHolder fonts[3] = {{ "_size", 6u, 300u, fontSize, 0 }, { "_line_height", 6u, 300u, lineSpacing, 0 }, { "_weight", 1u, 32u, weight, 0 }};
 
-	filename = m_theme.getString("GENERAL", genKey, genKey);
+	string filename = m_theme.getString("GENERAL", genKey, genKey);// set to font name or label_font, button_font, text_font, title_font
+	// genKey is the key name under [GENERAL] = label_font, button_font, text_font, title_font
 	bool useDefault = filename == genKey;
 
 	/* get the resources - fontSize, lineSpacing, and weight */
 	for(u32 i = 0; i < 3; i++)
 	{
-		string defValue = genKey;
-		defValue += fonts[i].ext;// _size, _line_height, _weight
-		fonts[i].res = (u32)m_theme.getInt("GENERAL", defValue);
+		string newKey = genKey;// label_font, button_font, text_font, title_font
+		newKey += fonts[i].ext;// _size, _line_height, _weight
+		fonts[i].res = (u32)m_theme.getInt("GENERAL", newKey, 0);// res is the result value wanted
 
 		fonts[i].res = min(max(fonts[i].min, fonts[i].res <= 0 ? fonts[i].def : fonts[i].res), fonts[i].max);
 	}
 
 	/* check if font is already in memory */
-	/* and the filename, size, spacing, and weight are the same */
+	/* and the name, size, spacing, and weight are the same */
 	/* if so return this font */
 	std::vector<SFont>::iterator font_itr;
 	for(font_itr = theme.fontSet.begin(); font_itr != theme.fontSet.end(); ++font_itr)
@@ -1391,22 +1393,20 @@ SFont CMenu::_dfltFont(u32 fontSize, u32 lineSpacing, u32 weight, u32 index, con
 	return retFont;
 }
 
+/* this is used when getting font settings from theme ini for Labels, text, buttons, and titles */
 SFont CMenu::_font(const char *domain, const char *key, SFont def_font)
 {
-	string filename;
+	// SFont def_font is label_font, text_font, button_font, or title_font set in _dfltFont above 
 	FontHolder fonts[3] = {{ "_size", 6u, 300u, 0, 0 }, { "_line_height", 6u, 300u, 0, 0 }, { "_weight", 1u, 32u, 0, 0 }};
-
-	filename = m_theme.getString(domain, key);
-	if(filename.empty())
-		filename = def_font.name;
+	string filename = m_theme.getString(domain, key, def_font.name);
 
 	/* get the resources - fontSize, lineSpacing, and weight */
 	for(u32 i = 0; i < 3; i++)
 	{
-		string value = key;
-		value += fonts[i].ext;// _size, _line_height, _weight
+		string newKey = key;
+		newKey += fonts[i].ext;// _size, _line_height, _weight
 
-		fonts[i].res = (u32)m_theme.getInt(domain, value);
+		fonts[i].res = (u32)m_theme.getInt(domain, newKey, 0);
 		if(fonts[i].res <= 0 && i == 0)
 			fonts[i].res = def_font.fSize;
 		else if(fonts[i].res <= 0 && i == 1)
@@ -1438,6 +1438,10 @@ SFont CMenu::_font(const char *domain, const char *key, SFont def_font)
 		theme.fontSet.push_back(retFont);
 		return retFont;
 	}
+	// fromFile will fail if filename was changed to label_font for example.(see fonts.h)
+	// and returning def_font below will ignore font size, linespacing, and weight if they are set different in theme ini
+	// if different fs, ls, w are needed make sure to also specify the font filename in the theme ini even if already used/specified 
+	// then fromFile will create a new font (same name) but different fs, ls, and w
 	return def_font;
 }
 
