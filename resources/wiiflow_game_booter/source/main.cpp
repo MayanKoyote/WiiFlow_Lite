@@ -128,6 +128,7 @@ int main()
 	
 	/* Error 002 Fix (thanks WiiPower and uLoader) */
 	*Current_IOS = (GameIOS << 16) | 0xffff;
+	
 	if(!isForwarder)
 		*Apploader_IOS = (GameIOS << 16) | 0xffff;
 	

@@ -161,26 +161,41 @@ void maindolpatches(void *dst, int len, u8 vidMode, GXRModeObj *vmode, bool vipa
 
 	if(debuggerselect == 2)
 		Patch_fwrite(dst, len);
+
 	if(hooktype != 0 && hookpatched == false)
 		hookpatched = dogamehooks(dst, len, false);
+
 	if(vipatch)
 		vidolpatcher(dst, len);
+
 	if(patchVidModes > 0)
 		PatchVideoSneek(dst, len);
+
 	if(configbytes[0] != 0xCD)
 		langpatcher(dst, len);
+
 	if(countryString)
 		PatchCountryStrings(dst, len); // Country Patch by WiiPower
+
 	do_wip_code((u8 *)dst, len);
+
 	Remove_001_Protection(dst, len);
+
+	/* note: Anti 002 Fix is different than the 002 fix by wiipower applied later in main.cpp */
+	/* this one is needed if the user is using a very old cios in which its 002 fix didn't work correctly. */
+	/* the game is patched to keep the old cios from patching with its broken 002 fix */
 	if(CurrentIOS.Type == IOS_TYPE_WANIN && CurrentIOS.Revision < 13)
 		Anti_002_fix(dst, len);
+
 	if((CurrentIOS.Type == IOS_TYPE_WANIN && CurrentIOS.Revision < 13) || CurrentIOS.Type == IOS_TYPE_HERMES)
 		patch_NoDiscinDrive(dst, len);
+
 	if(patchregion)
 		PatchRegion(dst, len);
+
 	if(videoWidth == WIDTH_FRAMEBUFFER)
 		patch_width(dst, len);
+
 	if(deflicker == DEFLICKER_ON_LOW)
 	{
 		patch_vfilters(dst, len, vfilter_low);
@@ -204,10 +219,13 @@ void maindolpatches(void *dst, int len, u8 vidMode, GXRModeObj *vmode, bool vipa
 		if (deflicker == DEFLICKER_OFF_EXTENDED)
 			deflicker_patch(dst, len);
 	}
+	
 	if(returnTo)
 		PatchReturnTo(dst, len, returnTo);
+
 	if(aspectRatio != -1)
 		PatchAspectRatio(dst, len, aspectRatio);
+
 	if(private_server)
 		PrivateServerPatcher(dst, len, private_server, serverAddr);
 }

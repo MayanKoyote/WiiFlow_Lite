@@ -411,6 +411,8 @@ void CMenu::_configGCGame(const dir_discHdr *hdr, bool disc)
 		}
 		else if(BTN_A_PRESSED)
 		{
+			if(m_btnMgr.selected(m_gameSettingsBtnBack))
+				break;
 			if(m_configGCGamePage == 1)
 			{
 				//Adult only
