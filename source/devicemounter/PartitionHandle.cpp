@@ -295,6 +295,26 @@ s8 PartitionHandle::FindPartitions()
 		}
 	}
 	MEM2_free(mbr);
+	
+	// Attempt to add a FAT32 partition if nothing was found (missing MBR)
+	if (PartitionList.empty())
+	{
+		char *buffer = (char *) MEM2_alloc(MAX_BYTES_PER_SECTOR);
+		if (!buffer)
+			return -1;
+		if (interface->readSectors(0, 1, buffer))
+		{
+			if (*((u16 *) (buffer + 0x1FE)) == 0x55AA || *((u16 *) (buffer + 0x1FE)) == 0x55AB)
+			{
+				if (memcmp(buffer + 0x36, "FAT", 3) == 0 || memcmp(buffer + 0x52, "FAT", 3) == 0)
+				{
+					sec_t FAT_startSector = FindFirstValidPartition(interface);
+					AddPartition("FAT32", FAT_startSector, 0xdeadbeaf, true, 0x0c, 0);
+				}
+			}
+		}
+		free(buffer);
+	}
 	return 0;
 }
 

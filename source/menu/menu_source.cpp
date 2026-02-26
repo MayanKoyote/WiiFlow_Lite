@@ -80,7 +80,7 @@ void CMenu::_sourceFlow()
 				m_plugin.SetEnablePlugin(pos, 1); // force disable all
 			enabledPluginsCount = 0;
 			string enabledMagics;
-			int channels_type = m_cfg.getInt(CHANNEL_DOMAIN, "channels_type");
+			channels_type = m_cfg.getInt(CHANNEL_DOMAIN, "channels_type");
 			u8 first = 1;
 			for(i = 0; i < magicNums.size(); i++)
 			{
@@ -93,17 +93,17 @@ void CMenu::_sourceFlow()
 						enabledMagics = magicNums[i];
 					else
 						enabledMagics.append(',' + magicNums[i]);
-					string magic = sfmt("%08x", m_plugin.GetPluginMagic(pos));
-					if(magic == ENAND_PMAGIC || magic == NAND_PMAGIC)
+					strncpy(m_plugin.PluginMagicWord, fmt("%08x", m_plugin.GetPluginMagic(pos)), 8);
+					if(strncasecmp(m_plugin.PluginMagicWord, ENAND_PMAGIC, 8) == 0 || strncasecmp(m_plugin.PluginMagicWord, NAND_PMAGIC, 8) == 0)
 					{
 						if(first)
 						{
 							first--;
 							channels_type = 0;
 						}
-						if(magic == ENAND_PMAGIC)
+						if(strncasecmp(m_plugin.PluginMagicWord, ENAND_PMAGIC, 8) == 0)
 							channels_type |= CHANNELS_EMU;
-						else if(magic == NAND_PMAGIC)
+						else if(strncasecmp(m_plugin.PluginMagicWord, NAND_PMAGIC, 8) == 0)
 							channels_type |= CHANNELS_REAL;
 					}
 				}
@@ -516,7 +516,6 @@ bool CMenu::_Source()
 							m_plugin.SetEnablePlugin(pos, 1); // force disable all
 						enabledPluginsCount = 0;
 						string enabledMagics;
-						int channels_type = m_cfg.getInt(CHANNEL_DOMAIN, "channels_type");
 						u8 first = 1;
 						for(i = 0; i < magicNums.size(); i++)
 						{
@@ -529,22 +528,21 @@ bool CMenu::_Source()
 									enabledMagics = magicNums[i];
 								else
 									enabledMagics.append(',' + magicNums[i]);
-								string magic = sfmt("%08x", m_plugin.GetPluginMagic(pos));
-								if(magic == ENAND_PMAGIC || magic == NAND_PMAGIC)
+								strncpy(m_plugin.PluginMagicWord, fmt("%08x", m_plugin.GetPluginMagic(pos)), 8);
+								if(strncasecmp(m_plugin.PluginMagicWord, ENAND_PMAGIC, 8) == 0 || strncasecmp(m_plugin.PluginMagicWord, NAND_PMAGIC, 8) == 0)
 								{
 									if(first)
 									{
 										first--;
 										channels_type = 0;
 									}
-									if(magic == ENAND_PMAGIC)
+									if(strncasecmp(m_plugin.PluginMagicWord, ENAND_PMAGIC, 8) == 0)
 										channels_type |= CHANNELS_EMU;
-									else if(magic == NAND_PMAGIC)
+									else if(strncasecmp(m_plugin.PluginMagicWord, NAND_PMAGIC, 8) == 0)
 										channels_type |= CHANNELS_REAL;
 								}
 							}
 						}
-						m_cfg.setInt(CHANNEL_DOMAIN, "channels_type", channels_type);
 						m_cfg.setString(PLUGIN_DOMAIN, "enabled_plugins", enabledMagics);
 						m_current_view = COVERFLOW_PLUGIN;
 						_setSrcOptions();
