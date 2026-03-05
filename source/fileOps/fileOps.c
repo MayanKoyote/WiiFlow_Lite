@@ -317,7 +317,7 @@ void fsop_deleteFolder(const char *source)
 	closedir(pdir);
 	/* now actually delete the folder */
 	gprintf("Deleting directory: %s\n", source);
-	unlink(source);// using POSIX unlink to delete the folder
+	rmdir(source);
 }
 
 bool fsop_FileExist(const char *fn)

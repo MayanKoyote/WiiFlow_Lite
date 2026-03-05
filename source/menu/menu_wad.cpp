@@ -146,10 +146,10 @@ int installWad(const char *path)
 		}
 		/* clear old tik */
 		fsop_deleteFile(fmt("%s/ticket/%08x/%08x.tik", EmuNAND, (u32)(tid>>32), (u32)tid&0xFFFFFFFF));
-		/* clear old content */
+		/* clear old content folder and files */
 		fsop_deleteFolder(fmt("%s/title/%08x/%08x/content", EmuNAND, (u32)(tid>>32), (u32)tid&0xFFFFFFFF));
 
-		/* (re)create folder structure */
+		/* create complete folder structure in case its the first time and some folders don't exist */
 		fsop_MakeFolder(fmt("%s/ticket", EmuNAND));
 		fsop_MakeFolder(fmt("%s/ticket/%08x", EmuNAND, (u32)(tid>>32)));
 

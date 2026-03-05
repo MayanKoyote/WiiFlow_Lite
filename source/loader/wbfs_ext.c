@@ -164,7 +164,7 @@ s32 WBFS_Ext_RemoveGame(u8 *discid, char *gamepath)
 	}
 	closedir(dir_iter);
 	if(strlen(folder) > 11)
-		unlink(folder);
+		rmdir(folder);
 	return 0;
 }
 
